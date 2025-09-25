@@ -33,13 +33,13 @@ jobs:
         npx eslint . --ext ts,tsx --format json --output-file eslint-results.json
         ESLINT_EXIT_CODE=$?
         echo "ESLINT_EXIT_CODE=$ESLINT_EXIT_CODE" >> $GITHUB_ENV
-        set -e
         # Always show compact output for logs
         npx eslint . --ext ts,tsx --format compact || true
-      continue-on-error: true
+        # Exit with the ESLint exit code to make the step fail if ESLint failed
+        exit $ESLINT_EXIT_CODE
 
     - name: Comment PR with ESLint results
-      if: github.event_name == 'pull_request' && env.ESLINT_EXIT_CODE != '0'
+      if: always() && github.event_name == 'pull_request' && env.ESLINT_EXIT_CODE != '0'
       uses: actions/github-script@v7
       with:
         script: |
