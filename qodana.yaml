@@ -1,0 +1,15 @@
+version: "1.0"
+profile:
+  name: qodana.recommended
+linter: jetbrains/qodana-js2025.2
+exclude:
+  - name: All
+    paths:
+      - node_modules
+      - dist
+      - .git
+projectJDK: "17"
+bootstrap: |
+  npm ci || npm install
+  npm run build --if-present
+ide: "QDJV"
