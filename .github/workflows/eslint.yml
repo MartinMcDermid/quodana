@@ -29,8 +29,11 @@ jobs:
       id: eslint
       run: |
         # Run ESLint and capture exit code
+        set +e
         npx eslint . --ext ts,tsx --format json --output-file eslint-results.json
-        echo "ESLINT_EXIT_CODE=$?" >> $GITHUB_ENV
+        ESLINT_EXIT_CODE=$?
+        echo "ESLINT_EXIT_CODE=$ESLINT_EXIT_CODE" >> $GITHUB_ENV
+        set -e
         # Always show compact output for logs
         npx eslint . --ext ts,tsx --format compact || true
       continue-on-error: true
