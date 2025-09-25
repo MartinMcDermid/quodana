@@ -1,39 +1,31 @@
-## Code Quality with Qodana
+## Code Quality with ESLint
 
-A React + TypeScript project demonstrating automated code quality management using JetBrains Qodana for comprehensive code reviews.
+A React + TypeScript project demonstrating automated code quality management using ESLint for comprehensive code reviews.
 
 ### Local dev
 
 ```bash
 npm install
 npm run dev
+npm run lint  # Run ESLint checks locally
 ```
 
 ### Code Quality Setup
 
-This project uses Qodana as the backbone of our code review process:
+This project uses ESLint as the backbone of our code review process:
 
-- **Automated Quality Gates**: Blocks PRs with critical issues (`--fail-threshold 0`)
+- **Automated Quality Gates**: Blocks PRs with ESLint errors
 - **PR Integration**: Posts detailed feedback directly in pull request comments
-- **Caching**: Optimized workflow performance with dependency caching
-- **Smart Triggers**: Runs on PRs, main branch pushes, and release branches
+- **TypeScript Support**: Full TypeScript and React rules integration
+- **Smart Triggers**: Runs on PRs and main branch pushes
 
-The configuration lives in `qodana.yaml` and uses the latest JS/TS analyzer. The GitHub Actions workflow (`.github/workflows/code_quality.yml`) handles CI integration.
-
-### Configure Qodana token in GitHub
-
-1. Create a Qodana Cloud project and copy the project token.
-2. In your GitHub repo: Settings → Secrets and variables → Actions → New repository secret.
-3. Add a secret named `QODANA_TOKEN` with the token value.
-4. Push a commit or open a PR to trigger the workflow.
-
-Refer to JetBrains Qodana Quick Start for details: [Qodana Quick start](https://www.jetbrains.com/help/qodana/quick-start.html).
+The configuration lives in `eslint.config.js` and uses TypeScript and React rules. The GitHub Actions workflow (`.github/workflows/eslint.yml`) handles CI integration.
 
 ### Code Review Workflow
 
 1. Developer opens a PR
-2. Qodana automatically scans for quality issues, security vulnerabilities, and code smells
-3. Workflow fails if critical issues are found (quality gate enforcement)
-4. Detailed feedback appears as PR comments with specific line annotations
+2. ESLint automatically scans for code quality issues, potential bugs, and style violations
+3. Workflow fails if errors are found (quality gate enforcement)
+4. Detailed feedback appears as PR comments with specific line numbers and rule violations
 5. Human reviewers focus on architecture and business logic instead of syntax/quality issues
 

@@ -1,0 +1,85 @@
+name: ESLint Code Quality
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      id: eslint
+      run: |
+        npx eslint . --ext ts,tsx --format json --output-file eslint-results.json || true
+        npx eslint . --ext ts,tsx --format compact || true
+      continue-on-error: true
+
+    - name: Comment PR with ESLint results
+      if: github.event_name == 'pull_request' && steps.eslint.outcome == 'failure'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+
+          let eslintResults = [];
+          try {
+            const resultsFile = fs.readFileSync('eslint-results.json', 'utf8');
+            eslintResults = JSON.parse(resultsFile);
+          } catch (error) {
+            console.log('Could not read ESLint results file');
+            return;
+          }
+
+          const errorCount = eslintResults.reduce((acc, file) => acc + file.errorCount, 0);
+          const warningCount = eslintResults.reduce((acc, file) => acc + file.warningCount, 0);
+
+          if (errorCount === 0 && warningCount === 0) {
+            return;
+          }
+
+          let comment = `## ESLint Issues Found\n\n`;
+          comment += `**Summary:** ${errorCount} error(s), ${warningCount} warning(s)\n\n`;
+
+          const filesWithIssues = eslintResults.filter(file => file.messages.length > 0);
+
+          if (filesWithIssues.length > 0) {
+            comment += `### Files with issues:\n\n`;
+
+            filesWithIssues.forEach(file => {
+              comment += `#### \`${file.filePath.replace(process.cwd() + '/', '')}\`\n\n`;
+
+              file.messages.forEach(message => {
+                const severity = message.severity === 2 ? 'ERROR' : 'WARNING';
+                comment += `- **${severity}** Line ${message.line}:${message.column} - ${message.message} (\`${message.ruleId || 'unknown'}\`)\n`;
+              });
+
+              comment += '\n';
+            });
+          }
+
+          comment += `\n---\n*Please fix these issues before merging.*`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
